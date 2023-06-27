@@ -1,78 +1,71 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class ArrayCombinations {
-    public static int[][] findCombinations(int[] nums, int target) {
-        List<List<Integer>> pairs = new ArrayList<>();
-        Set<Integer> seen = new HashSet<>();
+public class ArrayCombination {
+    public static void main(String[] args) {
+        int[] nums = {1, 3, 2, 2, -4, -6, -2, 8};
+        int target = 4;
 
-        for (int num : nums) {
-            int complement = target - num;
+        // Find combinations for the target value
+        List<List<Integer>> firstCombinations = findCombinations(nums, target);
+        System.out.println("First Combination for " + target + ": " + firstCombinations);
 
-            if (seen.contains(complement)) {
-                pairs.add(Arrays.asList(complement, num));
+        // Merge the array into a single array and sort it
+        int[] mergedArray = mergeArray(nums);
+        System.out.println("Merge into a single array: " + Arrays.toString(mergedArray));
+
+        // Find combinations for the double of the target value
+        int doubleTarget = target * 2;
+        List<List<Integer>> secondCombinations = findDoubleCombinations(mergedArray, doubleTarget);
+        System.out.println("Second Combination for " + doubleTarget + ": " + secondCombinations);
+    }
+
+    private static List<List<Integer>> findCombinations(int[] nums, int target) {
+        List<List<Integer>> combinations = new ArrayList<>();
+
+        for (int i = 0; i < nums.length - 1; i++) {
+            for (int j = i + 1; j < nums.length; j++) {
+                if (nums[i] + nums[j] == target) {
+                    combinations.add(Arrays.asList(nums[i], nums[j]));
+                }
             }
-
-            seen.add(num);
-        }
-
-        int[][] combinations = new int[pairs.size()][2];
-        for (int i = 0; i < pairs.size(); i++) {
-            combinations[i][0] = pairs.get(i).get(0);
-            combinations[i][1] = pairs.get(i).get(1);
         }
 
         return combinations;
     }
 
-    public static int[] mergeAndSort(int[] nums) {
-        int[] merged = Arrays.copyOf(nums, nums.length);
-        Arrays.sort(merged);
-        return merged;
+    private static int[] mergeArray(int[] nums) {
+        Arrays.sort(nums);
+        return nums;
     }
 
-    public static int[][] findCombinationsOfDoubledTarget(int[] nums, int target) {
-        int doubledTarget = target * 2;
+    private static List<List<Integer>> findDoubleCombinations(int[] nums, int target) {
         List<List<Integer>> combinations = new ArrayList<>();
 
-        for (int i = 0; i < nums.length; i++) {
-            List<Integer> combination = new ArrayList<>();
-            combination.add(nums[i]);
+        findCombinationsHelper(nums, target, 0, new ArrayList<>(), combinations);
 
-            int remaining = doubledTarget - nums[i];
-            for (int j = i + 1; j < nums.length; j++) {
-                if (nums[j] <= remaining) {
-                    combination.add(nums[j]);
-                    remaining -= nums[j];
-                }
-            }
-
-            if (remaining == 0) {
-                combinations.add(combination);
-            }
-        }
-
-        int[][] combinationsArray = new int[combinations.size()][];
-        for (int i = 0; i < combinations.size(); i++) {
-            combinationsArray[i] = combinations.get(i).stream().mapToInt(Integer::intValue).toArray();
-        }
-
-        return combinationsArray;
+        return combinations;
     }
 
-    public static void main(String[] args) {
-        int[] inputArray = {1, 3, 2, 2, -4, -6, -2, 8};
-        int targetValue = 4;
+    private static void findCombinationsHelper(int[] nums, int target, int start, List<Integer> currentCombination, List<List<Integer>> combinations) {
+        if (target == 0) {
+            combinations.add(new ArrayList<>(currentCombination));
+            return;
+        }
 
-        // Step 1: Find pairs
-        int[][] pairs = findCombinations(inputArray, targetValue);
-        System.out.println("First Combination For \"" + targetValue + "\": " + Arrays.deepToString(pairs));
+        if (target < 0) {
+            return;
+        }
 
-        // Step 2: Merge and sort
-        int[] mergedArray = mergeAndSort(inputArray);
-        System.out.println("Merge Into a single Array: " + Arrays.toString(mergedArray));
+        for (int i = start; i < nums.length; i++) {
+            if (i > start && nums[i] == nums[i - 1]) {
+                continue;
+            }
 
-        // Step 3: Find combinations of doubled target
-        int[][] combinations = findCombinationsOfDoubledTarget(mergedArray, targetValue);
-        System.out.println("Second Combination For \"" + (targetValue * 2) + "\": " + Arrays.deepToString(combinations));
+            currentCombination.add(nums[i]);
+            findCombinationsHelper(nums, target - nums[i], i + 1, currentCombination, combinations);
+            currentCombination.remove(currentCombination.size() - 1);
+        }
     }
 }
